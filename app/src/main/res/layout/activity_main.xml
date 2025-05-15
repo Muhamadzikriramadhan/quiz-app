@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center"
+    android:background="#F6F2F1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_marginBottom="20dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:src="@drawable/icon"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:textStyle="bold"
+            android:textSize="20dp"
+            android:text="Selamat Datang di Quiz App!"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="normal"
+            android:textSize="20sp"
+            android:text="Ayo Mulai Petualangan Quiz-mu!" />
+
+    </LinearLayout>
+
+    <Button android:id="@+id/btnStartQuiz"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="Mulai Kuis" />
+
+    <Button android:id="@+id/btnViewUsers"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="Lihat Peserta" android:layout_marginTop="16dp"/>
+
+</LinearLayout>
