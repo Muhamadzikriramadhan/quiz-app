@@ -20,28 +20,50 @@
             android:src="@drawable/icon"/>
 
         <TextView
+            android:id="@+id/welcomeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
             android:textStyle="bold"
-            android:textSize="20dp"
-            android:text="Selamat Datang di Quiz App!"/>
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:textSize="20dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textStyle="normal"
+            android:textColor="@color/black"
             android:textSize="20sp"
             android:text="Ayo Mulai Petualangan Quiz-mu!" />
 
     </LinearLayout>
 
-    <Button android:id="@+id/btnStartQuiz"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
+    <Button
+        android:id="@+id/btnStartQuiz"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textStyle="bold"
         android:text="Mulai Kuis" />
 
-    <Button android:id="@+id/btnViewUsers"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="Lihat Peserta" android:layout_marginTop="16dp"/>
+    <Button
+        android:id="@+id/btnViewUsers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lihat Peserta"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/btnCrudQuestion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Soal Kuis"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"/>
 
 </LinearLayout>

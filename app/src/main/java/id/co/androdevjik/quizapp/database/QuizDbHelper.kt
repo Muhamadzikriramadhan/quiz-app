@@ -2,9 +2,12 @@ package id.co.androdevjik.quizapp.database
 
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import id.co.androdevjik.quizapp.model.Question
+import id.co.androdevjik.quizapp.model.QuizParticipant
 import id.co.androdevjik.quizapp.model.User
 
 class QuizDbHelper(context: Context) : SQLiteOpenHelper(context, "quiz.db", null, 1) {
@@ -25,10 +28,20 @@ class QuizDbHelper(context: Context) : SQLiteOpenHelper(context, "quiz.db", null
         db.execSQL("""
             CREATE TABLE users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE,
+                password TEXT,
+                name TEXT,
+                role TEXT
+            );
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE TABLE quiz_participants (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
                 score INTEGER,
-                question_total INTEGER,
-                submit_time TEXT,
+                questionTotal INTEGER,
+                submitTime TEXT,
                 duration TEXT
             );
         """.trimIndent())
@@ -95,6 +108,7 @@ class QuizDbHelper(context: Context) : SQLiteOpenHelper(context, "quiz.db", null
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS questions")
         db.execSQL("DROP TABLE IF EXISTS users")
+        db.execSQL("DROP TABLE IF EXISTS quiz_participants")
         onCreate(db)
     }
 
@@ -119,24 +133,64 @@ class QuizDbHelper(context: Context) : SQLiteOpenHelper(context, "quiz.db", null
         return list
     }
 
+    fun loginUser(username: String, password: String): User? {
+        val db = readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT * FROM users WHERE username = ? AND password = ? ORDER BY username ASC",
+            arrayOf(username, password)
+        )
+        return if (cursor.moveToFirst()) {
+            val user = User(
+                id = cursor.getIntSafe("id"),
+                username = cursor.getStringSafe("username"),
+                password = cursor.getStringSafe("password"),
+                name = cursor.getStringSafe("name"),
+                role = cursor.getStringSafe("role")
+            )
+
+            cursor.close()
+            user
+        } else {
+            cursor.close()
+            null
+        }
+    }
+
+    fun registerUser(username: String, password: String, name: String, role: String): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("username", username)
+            put("password", password)
+            put("name", name)
+            put("role", role)
+        }
+        return try {
+            db.insertOrThrow("users", null, values)
+            true
+        } catch (e: SQLiteConstraintException) {
+            false // username already exists
+        }
+    }
+
     fun insertUser(name: String, score: Int, submitTime: String, questionTotal: Int, duration: String) {
+
         val db = writableDatabase
         val values = ContentValues().apply {
             put("name", name)
             put("score", score)
-            put("question_total", questionTotal)
-            put("submit_time", submitTime)
+            put("questionTotal", questionTotal)
+            put("submitTime", submitTime)
             put("duration", duration)
         }
-        db.insert("users", null, values)
+        db.insert("quiz_participants", null, values)
     }
 
-    fun getAllUsers(): List<User> {
-        val list = mutableListOf<User>()
+    fun getAllUsers(): List<QuizParticipant> {
+        val list = mutableListOf<QuizParticipant>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM users", null)
+        val cursor = db.rawQuery("SELECT * FROM quiz_participants", null)
         while (cursor.moveToNext()) {
-            list.add(User(
+            list.add(QuizParticipant(
                 cursor.getInt(0),
                 cursor.getString(1),
                 cursor.getInt(2),
@@ -148,4 +202,76 @@ class QuizDbHelper(context: Context) : SQLiteOpenHelper(context, "quiz.db", null
         cursor.close()
         return list
     }
+
+    fun Cursor.getStringSafe(column: String): String? {
+        return try {
+            val index = getColumnIndexOrThrow(column)
+            if (isNull(index)) null else getString(index)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun Cursor.getIntSafe(column: String): Int {
+        return try {
+            val index = getColumnIndexOrThrow(column)
+            if (isNull(index)) 0 else getInt(index)
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    fun insertQuestion(q: Question): Long {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("question", q.question)
+            put("option1", q.option1)
+            put("option2", q.option2)
+            put("option3", q.option3)
+            put("option4", q.option4)
+            put("answer", q.answer)
+        }
+        return db.insert("questions", null, values)
+    }
+
+    fun getAllQuestions(): List<Question> {
+        val questions = mutableListOf<Question>()
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM questions", null)
+        if (cursor.moveToFirst()) {
+            do {
+                val question = Question(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    question = cursor.getString(cursor.getColumnIndexOrThrow("question")),
+                    option1 = cursor.getString(cursor.getColumnIndexOrThrow("option1")),
+                    option2 = cursor.getString(cursor.getColumnIndexOrThrow("option2")),
+                    option3 = cursor.getString(cursor.getColumnIndexOrThrow("option3")),
+                    option4 = cursor.getString(cursor.getColumnIndexOrThrow("option4")),
+                    answer = cursor.getInt(cursor.getColumnIndexOrThrow("answer"))
+                )
+                questions.add(question)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return questions
+    }
+
+    fun updateQuestion(q: Question): Int {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("question", q.question)
+            put("option1", q.option1)
+            put("option2", q.option2)
+            put("option3", q.option3)
+            put("option4", q.option4)
+            put("answer", q.answer)
+        }
+        return db.update("questions", values, "id=?", arrayOf(q.id.toString()))
+    }
+
+    fun deleteQuestion(id: Int): Int {
+        val db = writableDatabase
+        return db.delete("questions", "id=?", arrayOf(id.toString()))
+    }
+
 }

@@ -1,17 +1,21 @@
 package id.co.androdevjik.quizapp
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
 import android.os.Bundle
 import android.text.InputType
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import id.co.androdevjik.quizapp.ui.QuestionActivity
 import id.co.androdevjik.quizapp.ui.QuizActivity
 import id.co.androdevjik.quizapp.ui.UserListActivity
 
@@ -20,6 +24,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val sharedPref = this.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        val fullname = sharedPref.getString("name", null) ?: return
+        val role = sharedPref.getString("user_role", null) ?: return
 
         findViewById<Button>(R.id.btnStartQuiz).setOnClickListener {
             val input = EditText(this).apply {
@@ -70,9 +78,18 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
+        findViewById<TextView>(R.id.welcomeText).text = "Selamat Datang, $fullname di Quiz App"
 
         findViewById<Button>(R.id.btnViewUsers).setOnClickListener {
             startActivity(Intent(this, UserListActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.btnCrudQuestion).setOnClickListener {
+            startActivity(Intent(this, QuestionActivity::class.java))
+        }
+
+        if (role == "teacher") {
+            findViewById<Button>(R.id.btnCrudQuestion).visibility = View.VISIBLE
         }
     }
 

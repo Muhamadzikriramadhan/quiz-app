@@ -6,13 +6,19 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import id.co.androdevjik.quizapp.R
+import id.co.androdevjik.quizapp.model.QuizParticipant
 import id.co.androdevjik.quizapp.model.User
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class UserAdapter(private val users: List<User>) :
+class UserAdapter(users: List<QuizParticipant>) :
     RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+
+    // Only include valid users where required fields are not null
+    private val validUsers = users.filter {
+        it.name != null && it.submitTime != null && it.duration != null && it.score != null && it.questionTotal != null
+    }
 
     class UserViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val icon: TextView = view.findViewById(R.id.iconUser)
@@ -29,18 +35,25 @@ class UserAdapter(private val users: List<User>) :
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        val user = users[position]
+        val user = validUsers[position]
+
         val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val outputFormat = SimpleDateFormat("EEEE, dd MMMM yyyy, h:mm a", Locale("id"))
-        val date: Date = inputFormat.parse(user.submitTime)!!
-        val formatted = outputFormat.format(date)
 
-        holder.datetime.text = formatted
+        try {
+            val date = inputFormat.parse(user.submitTime!!)
+            val formatted = outputFormat.format(date)
+            holder.datetime.text = formatted
+        } catch (e: Exception) {
+            holder.datetime.text = "-"
+        }
+
         holder.time.text = user.duration
         holder.name.text = user.name
-        holder.icon.text = user.name.first().uppercaseChar().toString()
+        holder.icon.text = user.name!!.first().uppercaseChar().toString()
         holder.info.text = "Skor: ${user.score} / ${user.questionTotal}"
     }
 
-    override fun getItemCount(): Int = users.size
+    override fun getItemCount(): Int = validUsers.size
 }
+
